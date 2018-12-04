@@ -127,7 +127,7 @@ func FindWins(
 			}
 		}
 		//slog.Printf("PayLine Symbols:%v", payLineSymbols)
-		if len(payLineSymbols) != 0 {
+		if len(payLineSymbols) > 1 {
 			payLineSymbolsTable = append(payLineSymbolsTable, payLineSymbols)
 		}
 	}
