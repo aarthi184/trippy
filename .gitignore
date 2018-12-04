@@ -1,0 +1,15 @@
+.tags
+.DS_Store
+.git/
+.gitconfig
+gdh.config
+pkg/
+bin/
+playground/
+bench/
+*.swp
+*.swo
+*.data
+*.log
+*.out
+keyfile*
