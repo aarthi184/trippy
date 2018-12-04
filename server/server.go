@@ -27,12 +27,13 @@ type Server struct {
 }
 
 var (
-	slog              *log.Logger
-	apiKey            string
-	atkinsDietMachine slotmachine.SlotMachine
+	slog              *log.Logger             // Stdout Logger
+	apiKey            string                  // API key used for encrypting teh JWT
+	atkinsDietMachine slotmachine.SlotMachine // Slot machine engine
 )
 
 const (
+	// Env variable for API Key used to encrypt the JWT token
 	_API_KEY_PATH = "TRIPPY_API_KEY_PATH"
 )
 
