@@ -77,7 +77,7 @@ func TestCreateToken(t *testing.T) {
 }
 
 func testCreateToken(t *testing.T, sample createTokenSample) {
-	// Since a claim remain constant, the token generated for the claim will be same everytime.
+	// Since a claim remains constant, the token generated for the claim will be same everytime.
 	token, _ := createToken(sample.claim, []byte(sample.secret))
 	if token != sample.token {
 		t.Errorf("Expected:[%s] Got:[%s]", sample.token, token)

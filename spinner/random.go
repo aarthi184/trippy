@@ -24,7 +24,7 @@ func randInt(min, max int) (int, error) {
 		return -1, errMinNotLess
 	}
 
-	// rand.Intn(n) return a random number in the interval [0,n)
+	// rand.Intn(n) returns a random number in the interval [0,n)
 	// adding 1 to include n
 	return min + rand.Intn((max-min)+1), nil
 }
