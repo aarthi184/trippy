@@ -135,7 +135,7 @@ func Spin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	user, err := parseToken(token)
+	user, err := parseToken(token, []byte(apiKey))
 	if err != nil {
 		slog.Printf("Parsing token failed [Error:%s]", err)
 		respondWithError(w, http.StatusBadRequest, errors.New("Invalid token received"))
@@ -173,13 +173,13 @@ func Spin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	respondWithError(w, http.StatusBadRequest, fmt.Errorf("Unknown machine:[%s]", machine))
 }
 
-func parseToken(tokenString string) (userClaims, error) {
+func parseToken(tokenString string, secret []byte) (userClaims, error) {
 	user := new(userClaims)
 	token, err := jwt.ParseWithClaims(tokenString, user, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Signing invalid. method %v", t.Header["alg"])
 		}
-		return []byte(apiKey), nil
+		return secret, nil
 	})
 
 	if err != nil {

@@ -113,8 +113,8 @@ func FindWins(
 				// Any wildcard symbol or a symbol equal to the firstSymbol is a win
 				if curSymbol == special.Wildcard || curSymbol == prevSymbol {
 					payLineSymbols = append(payLineSymbols, curSymbol)
-					// If firstSymbol was a wildcard, any symbol next to the wildcard becomes the primary symbol
 				} else if firstSymbol == special.Wildcard && curSymbol != special.Wildcard {
+					// If firstSymbol was a wildcard, any symbol next to the wildcard becomes the primary symbol
 					firstSymbol = curSymbol
 					payLineSymbols = append(payLineSymbols, curSymbol)
 				} else {
@@ -180,6 +180,7 @@ func findFirstNonWildcard(stops []slotmachine.Symbol, reelLine slotmachine.ReelL
 }
 */
 
+// CalculatePay finds the total pay for this spin from the list of winning lines
 func CalculatePay(wins [][]slotmachine.Symbol, payTable slotmachine.PayTable, special slotmachine.SpecialSymbols) (int, error) {
 	var (
 		pay       int
