@@ -17,3 +17,6 @@ To use Trippy, Go 1.10 or higher needs to be installed. [Install Go](https://gol
    Start the server with the API key filepath in env.
 
    `echo "secret_key" >> keyfile && export TRIPPY_API_KEY_PATH=./keyfile && trippy`
+
+
+[API Usage](https://github.com/aarthi184/trippy/wiki/API-Docs)
