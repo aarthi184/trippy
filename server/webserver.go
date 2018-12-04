@@ -8,6 +8,8 @@ import (
 	"runtime/debug"
 	"time"
 
+	"trippy/slotmachine/atkins"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/urfave/negroni"
@@ -145,10 +147,9 @@ func Spin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 
 	if machine == _ATKINS_DIET_MACHINE {
-		wager, ok := atkinsDietMachine.Wager(user.Bet, user.Chips)
-		if !ok {
-			slog.Printf("User:[%s] Balance not enough. Wager:[%d] Balance:[%d]", user.UID, wager, user.Chips)
-			respondWithError(w, http.StatusBadRequest, fmt.Errorf("Balance insufficient. Need [%d] chips more.", wager-user.Chips))
+		wager, err := atkinsDietMachine.Wager(user.Bet, user.Chips)
+		if err != nil {
+			handleWagerError(w, err, wager, user)
 			return
 		}
 		stops, pay, err := atkinsDietMachine.Spin(user.Bet)
@@ -190,4 +191,21 @@ func parseToken(tokenString string) (userClaims, error) {
 	}
 
 	return *user, nil
+}
+
+func handleWagerError(w http.ResponseWriter, err error, wager int, user userClaims) {
+	if err == atkins.ErrInvalidBet {
+		slog.Printf("User:[%s] Invalid Bet. Bet:[%d] Chips:[%d]", user.UID, user.Bet, user.Chips)
+		respondWithError(w, http.StatusBadRequest, atkins.ErrInvalidBet)
+		return
+	}
+	if err == atkins.ErrChipsInsufficient {
+		slog.Printf("User:[%s] Chips not enough. Wager:[%d] Chips:[%d]", user.UID, wager, user.Chips)
+		respondWithError(w, http.StatusBadRequest, fmt.Errorf("Chips insufficient. Need [%d] chips more.", wager-user.Chips))
+		return
+	}
+	slog.Printf("User:[%s] Wager Error:[%s] Bet:[%d] Chips:[%d]", user.UID, err, user.Bet, user.Chips)
+	respondWithError(w, http.StatusBadRequest, err)
+	return
+
 }

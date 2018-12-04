@@ -39,4 +39,3 @@ type SpecialSymbols struct {
 	Wildcard Symbol
 	Scatter  Symbol
 }
-

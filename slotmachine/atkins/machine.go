@@ -1,6 +1,7 @@
 package atkins
 
 import (
+	"errors"
 	"log"
 	"os"
 
@@ -39,12 +40,20 @@ func NewAtkinsDietMachine() *AtkinsDietMachine {
 	}
 }
 
-func (ad *AtkinsDietMachine) Wager(bet, balance int) (int, bool) {
-	wager := bet * len(ad.PayLines)
-	if wager > balance {
-		return wager, false
+var (
+	ErrChipsInsufficient = errors.New("Chips insufficient")
+	ErrInvalidBet        = errors.New("Bet is not greater than 0")
+)
+
+func (ad *AtkinsDietMachine) Wager(bet, chips int) (int, error) {
+	if bet <= 0 {
+		return 0, ErrInvalidBet
 	}
-	return wager, true
+	wager := bet * len(ad.PayLines)
+	if wager > chips {
+		return wager, ErrChipsInsufficient
+	}
+	return wager, nil
 }
 
 func (ad *AtkinsDietMachine) Spin(bet int) ([]int, int, error) {
