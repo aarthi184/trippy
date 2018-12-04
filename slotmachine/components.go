@@ -1,9 +1,8 @@
 package slotmachine
 
 /*
-   Paytable structure
-   Paytable will have only concurrent reads across goroutines
-   Writes will happen only on initialization
+   All types defined here will only have concurrent reads
+   Writes happen only on init.
    Therefore, thread-safety is not necessary here
 */
 
@@ -41,29 +40,3 @@ type SpecialSymbols struct {
 	Scatter  Symbol
 }
 
-/*
-func (pt *PayTable) SetPay(sym Symbol, count, amount int) error {
-	p, ok := pt[sym]
-	if ok {
-		p.SetPay(count, amount)
-		return nil
-	}
-	return errors.New("Symbol doesn't exist")
-}
-
-func (pt *PayTable) GetPay(sym Symbol, count int) (int, bool) {
-	p, ok := pt[sym]
-	if ok {
-		return p.GetPay(count)
-	}
-	return 0, false
-}
-func (p *Pays) SetPay(count, amount int) {
-	p[count] = amount
-}
-
-func (p *Pays) GetPay(count int) (int, bool) {
-	v, ok := p[count]
-	return v, ok
-}
-*/
