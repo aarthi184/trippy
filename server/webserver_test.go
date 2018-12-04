@@ -50,3 +50,36 @@ func testParseToken(t *testing.T, sample tokenSample) {
 		t.Errorf("Expected:[%d] Got:[%d]", sample.user.Chips, user.Chips)
 	}
 }
+
+var (
+	createTokenSamples = []createTokenSample{
+		{
+			token:  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIxMjMiLCJjaGlwcyI6MTAwMCwiYmV0IjoxMH0.PSPp1k2raKRhrKMFOrINIOkd8bK-w2vX1SULL3IKp4Q",
+			secret: "secret",
+			claim: userClaims{
+				UID:   "123",
+				Chips: 1000,
+				Bet:   10,
+			},
+		},
+	}
+)
+
+type createTokenSample struct {
+	token, secret string
+	claim         userClaims
+}
+
+func TestCreateToken(t *testing.T) {
+	for _, sample := range createTokenSamples {
+		testCreateToken(t, sample)
+	}
+}
+
+func testCreateToken(t *testing.T, sample createTokenSample) {
+	// Since a claim remain constant, the token generated for the claim will be same everytime.
+	token, _ := createToken(sample.claim, []byte(sample.secret))
+	if token != sample.token {
+		t.Errorf("Expected:[%s] Got:[%s]", sample.token, token)
+	}
+}
