@@ -12,9 +12,9 @@ type respGeneric struct {
 }
 
 type respSpin struct {
-	Total int        `json:"total"`
-	Spins []spin     `json:"spins"`
-	JWT   userClaims `json:"jwt"`
+	Total int    `json:"total"`
+	Spins []spin `json:"spins"`
+	JWT   string `json:"jwt"`
 }
 
 type spin struct {

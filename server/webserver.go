@@ -142,9 +142,7 @@ func Spin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	response := respSpin{
-		JWT: user,
-	}
+	var response respSpin
 
 	if machine == _ATKINS_DIET_MACHINE {
 		wager, err := atkinsDietMachine.Wager(user.Bet, user.Chips)
@@ -166,7 +164,14 @@ func Spin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 				Stops: stops,
 			},
 		}
-		response.JWT.Chips = response.JWT.Chips - wager + pay
+		user.Chips = user.Chips - wager + pay
+		token, err = createToken(user, []byte(apiKey))
+		if err != nil {
+			slog.Printf("Unable to create new JWT token for User:[%s] Error:[%s]", user.UID, err)
+			respondWithError(w, http.StatusInternalServerError, fmt.Errorf("Unable to generate new JWT [Error:%s]", err))
+			return
+		}
+		response.JWT = token
 		writeSpinResponse(w, http.StatusOK, response)
 		return
 	}
@@ -191,6 +196,11 @@ func parseToken(tokenString string, secret []byte) (userClaims, error) {
 	}
 
 	return *user, nil
+}
+
+func createToken(claims userClaims, secret []byte) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(secret)
 }
 
 func handleWagerError(w http.ResponseWriter, err error, wager int, user userClaims) {
