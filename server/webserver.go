@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -34,9 +35,9 @@ func (s *Server) StartWebServer(stopped chan struct{}) {
 	slog.Println("WebServer starting...")
 
 	router := httprouter.New()
-	router.GET("/", Home)                            // Root
-	router.GET("/hello/:name", Hello)                // Hello test API
-	router.GET("/api/machines/:machine/spins", Spin) // Spin the respective slot machine
+	router.GET("/", Home)                             // Root
+	router.GET("/hello/:name", Hello)                 // Hello test API
+	router.POST("/api/machines/:machine/spins", Spin) // Spin the respective slot machine
 
 	neg := negroni.Classic()
 	//neg.Use(negroni.HandlerFunc(authMiddleware))
@@ -128,16 +129,22 @@ func Spin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	token := r.Header.Get("token")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		slog.Printf("Spin: Unable to read body [Error:%s]", err)
+		respondWithError(w, http.StatusBadRequest, fmt.Errorf("Reading body failed. [Error:%s]", err))
+		return
+	}
+	token := string(body)
 	if token == "" {
-		slog.Println("Header:[token] is empty")
-		respondWithError(w, http.StatusBadRequest, errors.New("Header:[token] cannot be empty"))
+		slog.Println("Spin: Body:[JWT Token] is empty")
+		respondWithError(w, http.StatusBadRequest, errors.New("Body:[JWT token] cannot be empty"))
 		return
 	}
 
 	user, err := parseToken(token, []byte(apiKey))
 	if err != nil {
-		slog.Printf("Parsing token failed [Error:%s]", err)
+		slog.Printf("Spin: Parsing token failed [Error:%s]", err)
 		respondWithError(w, http.StatusBadRequest, errors.New("Invalid token received"))
 		return
 	}
@@ -167,7 +174,7 @@ func Spin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user.Chips = user.Chips - wager + pay
 		token, err = createToken(user, []byte(apiKey))
 		if err != nil {
-			slog.Printf("Unable to create new JWT token for User:[%s] Error:[%s]", user.UID, err)
+			slog.Printf("Spin: Unable to create new JWT token for User:[%s] Error:[%s]", user.UID, err)
 			respondWithError(w, http.StatusInternalServerError, fmt.Errorf("Unable to generate new JWT [Error:%s]", err))
 			return
 		}
