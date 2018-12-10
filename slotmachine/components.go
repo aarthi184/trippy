@@ -35,7 +35,22 @@ func SetAllPayLines(stripCount int) PayLines {
 	return []PayLine{{}}
 }
 
+type WinLine struct {
+	Index  int      `json:"index"`  //  number of the line
+	Symbol Symbol   `json:"symbol"` // paid symbol, can be code or index
+	Count  int      `json:"count"`  // number of symbols paid
+	Payout int      `json:"payout"` // Payout for this line
+	Line   []Symbol `json:"-"`      // The line of symbols
+}
+
 type SpecialSymbols struct {
 	Wildcard Symbol
 	Scatter  Symbol
+}
+
+type SpinResult struct {
+	Stops    []int
+	Pay      int
+	WinLines []WinLine
+	Err      error
 }

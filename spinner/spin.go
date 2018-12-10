@@ -30,24 +30,31 @@ func SpinNPay(
 	reels slotmachine.Reels,
 	payLines slotmachine.PayLines,
 	payTable slotmachine.PayTable,
-	special slotmachine.SpecialSymbols) (int, error) {
+	special slotmachine.SpecialSymbols) (slotmachine.SpinResult, error) {
+
+	var spinResult slotmachine.SpinResult
 
 	stops, err := Spin(reels)
 	if err != nil {
-		return 0, err
+		return spinResult, err
 	}
 
-	wins, _, err := FindWins(stops, reels, payLines, special)
+	winLines, _, err := FindWins(stops, reels, payLines, special)
 	if err != nil {
-		return 0, err
+		return spinResult, err
 	}
 
-	pay, err := CalculatePay(wins, payTable, special)
+	spinResult, err = CalculatePay(winLines, payTable, special)
 	if err != nil {
-		return 0, err
+		return spinResult, err
 	}
 
-	return pay, nil
+	for i := 0; i < len(stops); i++ {
+		stops[i]++ // Human-friendly numbering (starts from 1)
+	}
+	spinResult.Stops = stops
+
+	return spinResult, nil
 }
 
 func Spin(reels slotmachine.Reels) (stops []int, err error) {
@@ -74,7 +81,7 @@ func FindWins(
 	stops []int,
 	reels slotmachine.Reels,
 	payLines slotmachine.PayLines,
-	special slotmachine.SpecialSymbols) ([][]slotmachine.Symbol, int, error) {
+	special slotmachine.SpecialSymbols) ([]slotmachine.WinLine, int, error) {
 
 	var (
 		scatter               int
@@ -82,8 +89,9 @@ func FindWins(
 		prevSymbol, curSymbol slotmachine.Symbol
 		firstSymbol           slotmachine.Symbol
 		breakInLine           bool
-		payLineSymbolsTable   = make([][]slotmachine.Symbol, 0, len(payLines))
+		payLineSymbolsTable   = make([]slotmachine.WinLine, 0, len(payLines))
 		payLineSymbols        []slotmachine.Symbol
+		winLine               slotmachine.WinLine
 	)
 	if len(reels) == 0 {
 		return payLineSymbolsTable, 0, errEmptyReel
@@ -126,9 +134,13 @@ func FindWins(
 				scatter++
 			}
 		}
-		//slog.Printf("PayLine Symbols:%v", payLineSymbols)
+		slog.Printf("PayLine Symbols:%v", payLineSymbols)
 		if len(payLineSymbols) > 1 {
-			payLineSymbolsTable = append(payLineSymbolsTable, payLineSymbols)
+			winLine = slotmachine.WinLine{
+				Index: i + 1, // Starting human-friendly indexing (starts from 1)
+				Line:  payLineSymbols,
+			}
+			payLineSymbolsTable = append(payLineSymbolsTable, winLine)
 		}
 	}
 	slog.Println("Scatter count:", scatter)
@@ -181,37 +193,49 @@ func findFirstNonWildcard(stops []slotmachine.Symbol, reelLine slotmachine.ReelL
 */
 
 // CalculatePay finds the total pay for this spin from the list of winning lines
-func CalculatePay(wins [][]slotmachine.Symbol, payTable slotmachine.PayTable, special slotmachine.SpecialSymbols) (int, error) {
+func CalculatePay(wins []slotmachine.WinLine, payTable slotmachine.PayTable, special slotmachine.SpecialSymbols) (slotmachine.SpinResult, error) {
 	var (
-		pay       int
-		pays      slotmachine.Pays
-		ok        bool
-		paySymbol slotmachine.Symbol
+		totalPayout int
+		linePayout  int
+		pays        slotmachine.Pays
+		ok          bool
+		paySymbol   slotmachine.Symbol
+		spinResult  slotmachine.SpinResult
+		line        []slotmachine.Symbol
 	)
-	for _, winLine := range wins {
-		slog.Printf("Win Line:%v CurrentPay:%d", winLine, pay)
-		if len(winLine) == 0 {
+	for i := 0; i < len(wins); i++ {
+		line = wins[i].Line
+		slog.Printf("Win Line:%v CurrentPay:%d", line, totalPayout)
+		if len(line) == 0 {
 			continue
 		}
-		if winLine[0] != special.Wildcard {
+		if line[0] != special.Wildcard {
 			//slog.Printf("Not wildcard:[%d] symbol:[%d]", special.Wildcard, winLine[0])
-			if pays, ok = payTable[winLine[0]]; ok {
-				pay = pay + pays[len(winLine)]
-				//slog.Println("iNot wildcard Pay", pay)
+			paySymbol = line[0]
+			if pays, ok = payTable[line[0]]; ok {
+				linePayout = pays[len(line)]
+				//slog.Println("Not wildcard Pay", pay)
 			}
-			continue
-		}
-		//slog.Println("First symbol is wildcard", winLine[0])
-		paySymbol = special.Wildcard
-		for j := 0; j < len(winLine); j++ {
-			if winLine[j] != special.Wildcard {
-				paySymbol = winLine[j]
+		} else {
+			//slog.Println("First symbol is wildcard", winLine[0])
+			paySymbol = special.Wildcard
+			for j := 0; j < len(line); j++ {
+				if line[j] != special.Wildcard {
+					paySymbol = line[j]
+				}
+			}
+			if pays, ok = payTable[paySymbol]; ok {
+				linePayout = pays[len(line)]
+				//slog.Println("With wildcard Pay", pay)
 			}
 		}
-		if pays, ok = payTable[paySymbol]; ok {
-			pay = pay + pays[len(winLine)]
-			//slog.Println("With wildcard Pay", pay)
-		}
+		totalPayout = totalPayout + linePayout
+		wins[i].Symbol = paySymbol
+		wins[i].Count = len(line)
+		wins[i].Payout = linePayout
 	}
-	return pay, nil
+	spinResult.Pay = totalPayout
+	spinResult.WinLines = wins
+	//slog.Printf("22 %v", spinResult)
+	return spinResult, nil
 }

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"trippy/slotmachine"
 )
 
 type respGeneric struct {
@@ -18,9 +20,10 @@ type respSpin struct {
 }
 
 type spin struct {
-	Type  string `json:"type"`
-	Total int    `json:"total"`
-	Stops []int  `json:"stops"`
+	Type  string                `json:"type"`
+	Total int                   `json:"total"`
+	Stops []int                 `json:"stops"`
+	Lines []slotmachine.WinLine `json:"lines"`
 }
 
 type userClaims struct {

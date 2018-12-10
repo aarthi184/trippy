@@ -56,22 +56,22 @@ func (ad *AtkinsDietMachine) Wager(bet, chips int) (int, error) {
 	return wager, nil
 }
 
-func (ad *AtkinsDietMachine) Spin(bet int) ([]int, int, error) {
-	stops, err := spinner.Spin(ad.Reels)
+func (ad *AtkinsDietMachine) Spin(bet int) (slotmachine.SpinResult, error) {
+	spinResult, err := spinner.SpinNPay(
+		ad.Reels,
+		ad.PayLines,
+		ad.PayTable,
+		ad.SpecialSymbols,
+	)
 	if err != nil {
-		return stops, 0, err
+		return spinResult, err
 	}
 
-	wins, _, err := spinner.FindWins(stops, ad.Reels, ad.PayLines, ad.SpecialSymbols)
-	if err != nil {
-		return stops, 0, err
+	// Multiplying payout by wager
+	for i := 0; i < len(spinResult.WinLines); i++ {
+		spinResult.WinLines[i].Payout = spinResult.WinLines[i].Payout * bet
 	}
+	spinResult.Pay = spinResult.Pay * bet
 
-	pay, err := spinner.CalculatePay(wins, ad.PayTable, ad.SpecialSymbols)
-	if err != nil {
-		return stops, 0, err
-	}
-
-	pay = pay * bet
-	return stops, pay, nil
+	return spinResult, nil
 }

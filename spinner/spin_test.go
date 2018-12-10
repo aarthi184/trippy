@@ -49,26 +49,33 @@ var (
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 2, 3}}, payLines: []SM.PayLine{}, special: SM.SpecialSymbols{}, err: errEmptyPayLine},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 2, 3}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{{1, 1, 1}}, special: SM.SpecialSymbols{},
 			err:  nil,
-			wins: [][]SM.Symbol{}},
+			wins: []SM.WinLine{}},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 1, 3}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{{1, 1, 1}}, special: SM.SpecialSymbols{},
-			err:  nil,
-			wins: [][]SM.Symbol{{SM.Symbol(1), SM.Symbol(1)}}},
+			err: nil,
+			//	wins: [][]SM.Symbol{{SM.Symbol(1), SM.Symbol(1)}}},
+			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1)}}},
+		},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 1, 1}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{{1, 1, 1}}, special: SM.SpecialSymbols{},
 			err:  nil,
-			wins: [][]SM.Symbol{{SM.Symbol(1), SM.Symbol(1), SM.Symbol(1)}}},
+			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1), SM.Symbol(1)}}},
+		},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 1, 1}, {5, 5, 4}, {2, 1, 3}}, payLines: []SM.PayLine{{2, 2, 2}}, special: SM.SpecialSymbols{},
 			err:  nil,
-			wins: [][]SM.Symbol{{SM.Symbol(5), SM.Symbol(5)}}},
+			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(5), SM.Symbol(5)}}},
+		},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{4, 1, 4}, {5, 4, 4}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{},
 			err:  nil,
-			wins: [][]SM.Symbol{{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}}},
+			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}}},
+		},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{4, 1, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
-			wins: [][]SM.Symbol{{SM.Symbol(4), SM.Symbol(4), SM.Symbol(888)}}},
+			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(888)}}},
+		},
 		{stops: []int{1, 2, 0}, reels: SM.Reels{{4, 888, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
-			wins: [][]SM.Symbol{{SM.Symbol(4), SM.Symbol(888), SM.Symbol(4)}}},
+			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(888), SM.Symbol(4)}}},
+		},
 		{stops: []int{1, 2, 0}, reels: SM.Reels{{888, 888, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
-			wins: [][]SM.Symbol{{SM.Symbol(888), SM.Symbol(888), SM.Symbol(4)}}},
-
+			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888), SM.Symbol(4)}}},
+		},
 		// Multiple paylines
 		{
 			stops:    []int{1, 2, 0},
@@ -76,9 +83,9 @@ var (
 			payLines: []SM.PayLine{{1, 3, 2}, {2, 2, 2}},
 			special:  SM.SpecialSymbols{Wildcard: 888},
 			err:      nil,
-			wins: [][]SM.Symbol{
-				{SM.Symbol(888), SM.Symbol(888), SM.Symbol(4)},
-				{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)},
+			wins: []SM.WinLine{
+				SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888), SM.Symbol(4)}},
+				SM.WinLine{Index: 2, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}},
 			},
 		},
 	}
@@ -90,7 +97,7 @@ type winSample struct {
 	payLines SM.PayLines
 	special  SM.SpecialSymbols
 	err      error
-	wins     [][]SM.Symbol
+	wins     []SM.WinLine
 }
 
 func TestWin(t *testing.T) {
@@ -150,12 +157,54 @@ func testRotateOverflow(t *testing.T, sample overflowSample) {
 
 var (
 	paySamples = []paySample{
-		{wins: [][]SM.Symbol{{SM.Symbol(1), SM.Symbol(3), SM.Symbol(3)}}, special: SM.SpecialSymbols{Wildcard: 1}, err: nil, pay: 30},
-		{wins: [][]SM.Symbol{{SM.Symbol(1), SM.Symbol(1)}}, special: SM.SpecialSymbols{Wildcard: 1}, err: nil, pay: 5},
-		{wins: [][]SM.Symbol{{SM.Symbol(2), SM.Symbol(2), SM.Symbol(2)}}, special: SM.SpecialSymbols{Wildcard: 1}, err: nil, pay: 40},
-		{wins: [][]SM.Symbol{{SM.Symbol(3), SM.Symbol(1), SM.Symbol(3)}}, special: SM.SpecialSymbols{Wildcard: 1}, err: nil, pay: 30},
-		{wins: [][]SM.Symbol{{SM.Symbol(2), SM.Symbol(1)}}, special: SM.SpecialSymbols{Wildcard: 1}, err: nil, pay: 3},
-		{wins: [][]SM.Symbol{{SM.Symbol(1), SM.Symbol(2), SM.Symbol(1)}}, special: SM.SpecialSymbols{Wildcard: 1}, err: nil, pay: 40},
+		{
+			wins: []SM.WinLine{
+				SM.WinLine{Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(3), SM.Symbol(3)}},
+			},
+			special: SM.SpecialSymbols{Wildcard: 1},
+			err:     nil,
+			pay:     30,
+		},
+		{
+			wins: []SM.WinLine{
+				SM.WinLine{Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1)}},
+			},
+			special: SM.SpecialSymbols{Wildcard: 1},
+			err:     nil,
+			pay:     5,
+		},
+		{
+			wins: []SM.WinLine{
+				SM.WinLine{Line: []SM.Symbol{SM.Symbol(2), SM.Symbol(2), SM.Symbol(2)}},
+			},
+			special: SM.SpecialSymbols{Wildcard: 1},
+			err:     nil,
+			pay:     40,
+		},
+		{
+			wins: []SM.WinLine{
+				SM.WinLine{Line: []SM.Symbol{SM.Symbol(3), SM.Symbol(1), SM.Symbol(3)}},
+			},
+			special: SM.SpecialSymbols{Wildcard: 1},
+			err:     nil,
+			pay:     30,
+		},
+		{
+			wins: []SM.WinLine{
+				SM.WinLine{Line: []SM.Symbol{SM.Symbol(2), SM.Symbol(1)}},
+			},
+			special: SM.SpecialSymbols{Wildcard: 1},
+			err:     nil,
+			pay:     3,
+		},
+		{
+			wins: []SM.WinLine{
+				SM.WinLine{Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(2), SM.Symbol(1)}},
+			},
+			special: SM.SpecialSymbols{Wildcard: 1},
+			err:     nil,
+			pay:     40,
+		},
 	}
 
 	samplePayTable = SM.PayTable{
@@ -181,7 +230,7 @@ var (
 )
 
 type paySample struct {
-	wins    [][]SM.Symbol
+	wins    []SM.WinLine
 	special SM.SpecialSymbols
 	err     error
 	pay     int
@@ -194,7 +243,7 @@ func TestCalculatePay(t *testing.T) {
 }
 
 func testCalculatePay(t *testing.T, sample paySample) {
-	pay, err := CalculatePay(sample.wins, samplePayTable, sample.special)
+	spinResult, err := CalculatePay(sample.wins, samplePayTable, sample.special)
 	if err != sample.err {
 		t.Errorf("Expected:[%s] Got:[%s]", sample.err, err)
 		return
@@ -203,8 +252,8 @@ func testCalculatePay(t *testing.T, sample paySample) {
 		// If test is for an error case, stop tests and return
 		return
 	}
-	if pay != sample.pay {
-		t.Errorf("Expected:[%d] Got:[%d]", sample.pay, pay)
+	if spinResult.Pay != sample.pay {
+		t.Errorf("Expected:[%d] Got:[%d]", sample.pay, spinResult.Pay)
 		//return
 	}
 	//t.Logf("Pay: %d", pay)
