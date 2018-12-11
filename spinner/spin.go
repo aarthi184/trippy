@@ -140,8 +140,10 @@ func FindWins(
 		//slog.Printf("PayLine Symbols:%v", payLineSymbols)
 		if len(payLineSymbols) > 1 {
 			winLine = slotmachine.WinLine{
-				Index: i + 1, // Starting human-friendly indexing (starts from 1)
-				Line:  payLineSymbols,
+				Index:  i + 1, // Starting human-friendly indexing (starts from 1)
+				Symbol: primeSymbol,
+				Count:  len(payLineSymbols),
+				Line:   payLineSymbols,
 			}
 			payLineSymbolsTable = append(payLineSymbolsTable, winLine)
 		}
@@ -202,39 +204,15 @@ func CalculatePay(wins []slotmachine.WinLine, payTable slotmachine.PayTable, spe
 		linePayout  int
 		pays        slotmachine.Pays
 		ok          bool
-		paySymbol   slotmachine.Symbol
 		spinResult  slotmachine.SpinResult
-		line        []slotmachine.Symbol
 	)
 	for i := 0; i < len(wins); i++ {
-		line = wins[i].Line
-		slog.Printf("Win Line:%v CurrentPay:%d", line, totalPayout)
-		if len(line) == 0 {
-			continue
-		}
-		if line[0] != special.Wildcard {
-			//slog.Printf("Not wildcard:[%d] symbol:[%d]", special.Wildcard, winLine[0])
-			paySymbol = line[0]
-		} else {
-			//slog.Println("First symbol is wildcard", winLine[0])
-			paySymbol = special.Wildcard
-
-			// If first symbol was a wildcard, check if line contains another symbol
-			// Eg: WC WC 1 1
-			for j := 0; j < len(line); j++ {
-				if line[j] != special.Wildcard {
-					paySymbol = line[j]
-					break
-				}
-			}
-		}
-		if pays, ok = payTable[paySymbol]; ok {
-			linePayout = pays[len(line)]
+		if pays, ok = payTable[wins[i].Symbol]; ok {
+			linePayout = pays[wins[i].Count]
 		}
 		totalPayout = totalPayout + linePayout
-		wins[i].Symbol = paySymbol
-		wins[i].Count = len(line)
 		wins[i].Payout = linePayout
+		slog.Printf("Win Line:%v CurrentPay:%d", wins[i].Line, totalPayout)
 	}
 	spinResult.Pay = totalPayout
 	spinResult.WinLines = wins

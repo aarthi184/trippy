@@ -53,31 +53,45 @@ var (
 			err:  nil,
 			wins: []SM.WinLine{}},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 1, 3}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{{1, 1, 1}}, special: SM.SpecialSymbols{},
-			err:  nil,
-			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1)}}},
+			err: nil,
+			wins: []SM.WinLine{
+				SM.WinLine{Index: 1, Symbol: 1, Count: 2, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1)}},
+			},
 		},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 1, 1}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{{1, 1, 1}}, special: SM.SpecialSymbols{},
-			err:  nil,
-			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1), SM.Symbol(1)}}},
+			err: nil,
+			wins: []SM.WinLine{
+				SM.WinLine{Index: 1, Symbol: 1, Count: 3, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1), SM.Symbol(1)}},
+			},
 		},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 1, 1}, {5, 5, 4}, {2, 1, 3}}, payLines: []SM.PayLine{{2, 2, 2}}, special: SM.SpecialSymbols{},
-			err:  nil,
-			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(5), SM.Symbol(5)}}},
+			err: nil,
+			wins: []SM.WinLine{
+				SM.WinLine{Index: 1, Symbol: 5, Count: 2, Line: []SM.Symbol{SM.Symbol(5), SM.Symbol(5)}},
+			},
 		},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{4, 1, 4}, {5, 4, 4}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{},
-			err:  nil,
-			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}}},
+			err: nil,
+			wins: []SM.WinLine{
+				SM.WinLine{Index: 1, Symbol: 4, Count: 3, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}},
+			},
 		},
 
 		// Winning Lines with Wildcard Symbol
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{4, 1, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
-			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(888)}}},
+			wins: []SM.WinLine{
+				SM.WinLine{Index: 1, Symbol: 4, Count: 3, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(888)}},
+			},
 		},
 		{stops: []int{1, 2, 0}, reels: SM.Reels{{4, 888, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
-			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(888), SM.Symbol(4)}}},
+			wins: []SM.WinLine{
+				SM.WinLine{Index: 1, Symbol: 4, Count: 3, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(888), SM.Symbol(4)}},
+			},
 		},
 		{stops: []int{1, 2, 0}, reels: SM.Reels{{888, 888, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
-			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888)}}},
+			wins: []SM.WinLine{
+				SM.WinLine{Index: 1, Symbol: 888, Count: 2, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888)}},
+			},
 		},
 
 		// Multiple paylines
@@ -88,8 +102,8 @@ var (
 			special:  SM.SpecialSymbols{Wildcard: 888},
 			err:      nil,
 			wins: []SM.WinLine{
-				SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888)}},
-				SM.WinLine{Index: 2, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}},
+				SM.WinLine{Index: 1, Symbol: 888, Count: 2, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888)}},
+				SM.WinLine{Index: 2, Symbol: 4, Count: 3, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}},
 			},
 		},
 	}
@@ -207,7 +221,7 @@ var (
 	paySamples = []paySample{
 		{
 			wins: []SM.WinLine{
-				SM.WinLine{Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(3), SM.Symbol(3)}},
+				SM.WinLine{Symbol: 3, Count: 3, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(3), SM.Symbol(3)}},
 			},
 			special: SM.SpecialSymbols{Wildcard: 1},
 			err:     nil,
@@ -215,7 +229,7 @@ var (
 		},
 		{
 			wins: []SM.WinLine{
-				SM.WinLine{Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1)}},
+				SM.WinLine{Symbol: 1, Count: 2, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1)}},
 			},
 			special: SM.SpecialSymbols{Wildcard: 1},
 			err:     nil,
@@ -223,7 +237,7 @@ var (
 		},
 		{
 			wins: []SM.WinLine{
-				SM.WinLine{Line: []SM.Symbol{SM.Symbol(2), SM.Symbol(2), SM.Symbol(2)}},
+				SM.WinLine{Symbol: 2, Count: 3, Line: []SM.Symbol{SM.Symbol(2), SM.Symbol(2), SM.Symbol(2)}},
 			},
 			special: SM.SpecialSymbols{Wildcard: 1},
 			err:     nil,
@@ -231,7 +245,7 @@ var (
 		},
 		{
 			wins: []SM.WinLine{
-				SM.WinLine{Line: []SM.Symbol{SM.Symbol(3), SM.Symbol(1), SM.Symbol(3)}},
+				SM.WinLine{Symbol: 3, Count: 3, Line: []SM.Symbol{SM.Symbol(3), SM.Symbol(1), SM.Symbol(3)}},
 			},
 			special: SM.SpecialSymbols{Wildcard: 1},
 			err:     nil,
@@ -239,7 +253,7 @@ var (
 		},
 		{
 			wins: []SM.WinLine{
-				SM.WinLine{Line: []SM.Symbol{SM.Symbol(2), SM.Symbol(1)}},
+				SM.WinLine{Symbol: 2, Count: 2, Line: []SM.Symbol{SM.Symbol(2), SM.Symbol(1)}},
 			},
 			special: SM.SpecialSymbols{Wildcard: 1},
 			err:     nil,
@@ -247,7 +261,7 @@ var (
 		},
 		{
 			wins: []SM.WinLine{
-				SM.WinLine{Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(2), SM.Symbol(1)}},
+				SM.WinLine{Symbol: 2, Count: 3, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(2), SM.Symbol(1)}},
 			},
 			special: SM.SpecialSymbols{Wildcard: 1},
 			err:     nil,
