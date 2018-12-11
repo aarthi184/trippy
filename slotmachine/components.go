@@ -15,7 +15,6 @@ const (
 	FREE_SPIN string = "free"
 )
 
-// TODO: Make this interface for each machine to have it's own Stringer method
 type Symbol int
 
 func GetSymbol(n int) Symbol {
@@ -34,11 +33,6 @@ type ReelLine []Symbol
 
 type PayLines []PayLine
 type PayLine []int
-
-func SetAllPayLines(stripCount int) PayLines {
-	// TODO: Set all possible pay lines
-	return []PayLine{{}}
-}
 
 type WinLine struct {
 	Index  int      `json:"index"`  //  number of the line
