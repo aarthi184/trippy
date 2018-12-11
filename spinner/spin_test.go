@@ -77,7 +77,7 @@ var (
 			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(888), SM.Symbol(4)}}},
 		},
 		{stops: []int{1, 2, 0}, reels: SM.Reels{{888, 888, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
-			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888), SM.Symbol(4)}}},
+			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888)}}},
 		},
 
 		// Multiple paylines
@@ -88,7 +88,7 @@ var (
 			special:  SM.SpecialSymbols{Wildcard: 888},
 			err:      nil,
 			wins: []SM.WinLine{
-				SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888), SM.Symbol(4)}},
+				SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888)}},
 				SM.WinLine{Index: 2, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}},
 			},
 		},
@@ -158,8 +158,8 @@ type scatterSample struct {
 }
 
 func TestCountScatter(t *testing.T) {
-	for _, sample := range winSamples {
-		testWin(t, sample)
+	for _, sample := range scatterSamples {
+		testCountScatter(t, sample)
 	}
 }
 

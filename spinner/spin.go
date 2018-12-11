@@ -24,6 +24,7 @@ var (
 	errEmptyReel           = errors.New("Reel strips are empty")
 	errEmptyPayLine        = errors.New("Pay lines are empty")
 	errReelPayLineMismatch = errors.New("Reel width and Pay line width do not match")
+	errOnlyOneReelStrip    = errors.New("Only one reel strip present")
 )
 
 func SpinNPay(
@@ -104,8 +105,24 @@ func FindWins(
 			return payLineSymbolsTable, errReelPayLineMismatch
 		}
 
+		if len(line) < 2 {
+			return payLineSymbolsTable, errOnlyOneReelStrip
+		}
+
 		// Keeping track of the prime symbol and comparing each symbol in line with it
 		primeSymbol = getSymbol(reels, stops[0], line[0], 0)
+
+		// If first symbol was wildcard, we take the second symbol as prime
+		// If second symbol,
+		//     is not a wildcard, it'll become prime
+		//     is also a wildcard, it becomes 2 wildcards in a row
+		// Eg. 11 11 11 31 41 - three 11s in a row
+		//     WC 11 11 31 41 - three 11s in a row
+		//     WC WC 31 41 51 - two WCs in a row
+		// Handles the special case where WC WC WC 1 1 -> three WC in a row, not five 1s in a row
+		if primeSymbol == special.Wildcard {
+			primeSymbol = getSymbol(reels, stops[1], line[1], 1)
+		}
 		//slog.Printf("Prime Symbol:%s", primeSymbol)
 		payLineSymbols = make([]slotmachine.Symbol, 0, len(stops))
 		payLineSymbols = append(payLineSymbols, primeSymbol)
@@ -115,10 +132,6 @@ func FindWins(
 
 			// Any wildcard symbol or a symbol equal to the firstSymbol is a win
 			if curSymbol == special.Wildcard || curSymbol == primeSymbol {
-				payLineSymbols = append(payLineSymbols, curSymbol)
-			} else if primeSymbol == special.Wildcard && curSymbol != special.Wildcard {
-				// If firstSymbol was a wildcard, any symbol next to the wildcard becomes the primary symbol
-				primeSymbol = curSymbol
 				payLineSymbols = append(payLineSymbols, curSymbol)
 			} else {
 				break
