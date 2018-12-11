@@ -17,6 +17,9 @@ const (
 	_BACON
 	_MAYONNAISE
 	_SCALE
+
+	_SCATTER_COUNT_FOR_FREE_SPIN = 3
+	_FREE_SPINS                  = 10
 )
 
 var (

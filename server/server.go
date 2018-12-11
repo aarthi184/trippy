@@ -12,7 +12,7 @@ import (
 	"syscall"
 
 	"trippy/slotmachine"
-	"trippy/slotmachine/atkins"
+	"trippy/slotmachine/engine/atkins"
 )
 
 type Service interface {

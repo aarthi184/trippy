@@ -10,6 +10,11 @@ import (
 	"fmt"
 )
 
+const (
+	MAIN_SPIN string = "main"
+	FREE_SPIN string = "free"
+)
+
 // TODO: Make this interface for each machine to have it's own Stringer method
 type Symbol int
 
@@ -49,8 +54,10 @@ type SpecialSymbols struct {
 }
 
 type SpinResult struct {
-	Stops    []int
-	Pay      int
-	WinLines []WinLine
-	Err      error
+	Type         string
+	Stops        []int
+	Pay          int
+	WinLines     []WinLine
+	ScatterCount int
+	FreeSpins    int
 }

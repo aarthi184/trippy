@@ -9,7 +9,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"trippy/slotmachine/atkins"
+	"trippy/slotmachine"
+	"trippy/slotmachine/engine/atkins"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
@@ -149,29 +150,19 @@ func Spin(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	var response respSpin
-
 	if machine == _ATKINS_DIET_MACHINE {
 		wager, err := atkinsDietMachine.Wager(user.Bet, user.Chips)
 		if err != nil {
 			handleWagerError(w, err, wager, user)
 			return
 		}
-		spinResult, err := atkinsDietMachine.Spin(user.Bet)
+		payout, spinResults, err := atkinsDietMachine.Spin(user.Bet)
 		if err != nil {
 			slog.Printf("Spin failed for User:[%s] Error:[%s]", user.UID, err)
 			respondWithError(w, http.StatusInternalServerError, errors.New("Unable to spin"))
 			return
 		}
-		response.Total = spinResult.Pay
-		response.Spins = []spin{
-			{
-				Type:  "main",
-				Total: spinResult.Pay,
-				Stops: spinResult.Stops,
-				Lines: spinResult.WinLines,
-			},
-		}
+		response := computeSpinResponse(payout, spinResults)
 		user.Chips = user.Chips - wager + response.Total
 		token, err = createToken(user, []byte(apiKey))
 		if err != nil {
@@ -226,4 +217,17 @@ func handleWagerError(w http.ResponseWriter, err error, wager int, user userClai
 	respondWithError(w, http.StatusBadRequest, err)
 	return
 
+}
+
+func computeSpinResponse(payout int, spinResults []slotmachine.SpinResult) respSpin {
+	var response respSpin
+	response.Total = payout
+	response.Spins = make([]spin, len(spinResults))
+	for i, spinResult := range spinResults {
+		response.Spins[i].Type = spinResult.Type
+		response.Spins[i].Total = spinResult.Pay
+		response.Spins[i].Stops = spinResult.Stops
+		response.Spins[i].Lines = spinResult.WinLines
+	}
+	return response
 }

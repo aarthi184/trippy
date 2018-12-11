@@ -39,7 +39,7 @@ func SpinNPay(
 		return spinResult, err
 	}
 
-	winLines, _, err := FindWins(stops, reels, payLines, special)
+	winLines, err := FindWins(stops, reels, payLines, special)
 	if err != nil {
 		return spinResult, err
 	}
@@ -49,8 +49,11 @@ func SpinNPay(
 		return spinResult, err
 	}
 
+	spinResult.ScatterCount = CountScatter(stops, reels, special.Scatter)
+
+	// Changing stops to Human-friendly numbering (starts from 1)
 	for i := 0; i < len(stops); i++ {
-		stops[i]++ // Human-friendly numbering (starts from 1)
+		stops[i]++
 	}
 	spinResult.Stops = stops
 
@@ -81,57 +84,44 @@ func FindWins(
 	stops []int,
 	reels slotmachine.Reels,
 	payLines slotmachine.PayLines,
-	special slotmachine.SpecialSymbols) ([]slotmachine.WinLine, int, error) {
+	special slotmachine.SpecialSymbols) ([]slotmachine.WinLine, error) {
 
 	var (
-		scatter               int
-		j                     int
-		prevSymbol, curSymbol slotmachine.Symbol
-		firstSymbol           slotmachine.Symbol
-		breakInLine           bool
-		payLineSymbolsTable   = make([]slotmachine.WinLine, 0, len(payLines))
-		payLineSymbols        []slotmachine.Symbol
-		winLine               slotmachine.WinLine
+		j                      int
+		primeSymbol, curSymbol slotmachine.Symbol
+		payLineSymbolsTable    = make([]slotmachine.WinLine, 0, len(payLines))
+		payLineSymbols         []slotmachine.Symbol
+		winLine                slotmachine.WinLine
 	)
 	if len(reels) == 0 {
-		return payLineSymbolsTable, 0, errEmptyReel
+		return payLineSymbolsTable, errEmptyReel
 	}
 	if len(payLines) == 0 {
-		return payLineSymbolsTable, 0, errEmptyPayLine
+		return payLineSymbolsTable, errEmptyPayLine
 	}
 	for i, line := range payLines {
 		if len(reels[i]) != len(line) {
-			return payLineSymbolsTable, 0, errReelPayLineMismatch
+			return payLineSymbolsTable, errReelPayLineMismatch
 		}
 
-		// Keeping track of the first symbol and comparing each symbol in line with previous symbol
-		firstSymbol = getSymbol(reels, stops[0], line[0], 0)
-		prevSymbol = firstSymbol
+		// Keeping track of the prime symbol and comparing each symbol in line with it
+		primeSymbol = getSymbol(reels, stops[0], line[0], 0)
 		//slog.Printf("FirstSymbol:%s", firstSymbol)
 		payLineSymbols = make([]slotmachine.Symbol, 0, len(stops))
-		payLineSymbols = append(payLineSymbols, firstSymbol)
-
-		// Maintaining a breaker so that we can keep counting scatter even if line is a no-win.
-		breakInLine = false
+		payLineSymbols = append(payLineSymbols, primeSymbol)
 
 		for j = 1; j < len(line); j++ {
 			curSymbol = getSymbol(reels, stops[j], line[j], j)
 
-			if !breakInLine {
-				// Any wildcard symbol or a symbol equal to the firstSymbol is a win
-				if curSymbol == special.Wildcard || curSymbol == prevSymbol {
-					payLineSymbols = append(payLineSymbols, curSymbol)
-				} else if firstSymbol == special.Wildcard && curSymbol != special.Wildcard {
-					// If firstSymbol was a wildcard, any symbol next to the wildcard becomes the primary symbol
-					firstSymbol = curSymbol
-					payLineSymbols = append(payLineSymbols, curSymbol)
-				} else {
-					breakInLine = true
-				}
-			}
-			// Counting scatter
-			if curSymbol == special.Scatter {
-				scatter++
+			// Any wildcard symbol or a symbol equal to the firstSymbol is a win
+			if curSymbol == special.Wildcard || curSymbol == primeSymbol {
+				payLineSymbols = append(payLineSymbols, curSymbol)
+			} else if primeSymbol == special.Wildcard && curSymbol != special.Wildcard {
+				// If firstSymbol was a wildcard, any symbol next to the wildcard becomes the primary symbol
+				primeSymbol = curSymbol
+				payLineSymbols = append(payLineSymbols, curSymbol)
+			} else {
+				break
 			}
 		}
 		slog.Printf("PayLine Symbols:%v", payLineSymbols)
@@ -143,8 +133,29 @@ func FindWins(
 			payLineSymbolsTable = append(payLineSymbolsTable, winLine)
 		}
 	}
-	slog.Println("Scatter count:", scatter)
-	return payLineSymbolsTable, scatter, nil
+	return payLineSymbolsTable, nil
+}
+
+func CountScatter(stops []int, reels slotmachine.Reels, scatterSymbol slotmachine.Symbol) int {
+	var (
+		scatter   int
+		curSymbol slotmachine.Symbol
+	)
+	if len(reels) == 0 {
+		return 0
+	}
+	reelStrips := len(reels[0])
+	// Counting scatter in the the 3 slots 1,2 and 3
+	for i := 1; i <= 3; i++ {
+		for j := 0; j < reelStrips; j++ {
+			curSymbol = getSymbol(reels, stops[j], i, j)
+			// Counting scatter
+			if curSymbol == scatterSymbol {
+				scatter++
+			}
+		}
+	}
+	return scatter
 }
 
 func getSymbol(reels slotmachine.Reels, stop, payLineSpot, stripNumber int) slotmachine.Symbol {

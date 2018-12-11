@@ -47,12 +47,13 @@ var (
 		{stops: []int{1}, reels: SM.Reels{}, payLines: []SM.PayLine{{0, 0, 0}}, special: SM.SpecialSymbols{}, err: errEmptyReel},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 2, 3}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{}, special: SM.SpecialSymbols{}, err: errEmptyPayLine},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 2, 3}}, payLines: []SM.PayLine{}, special: SM.SpecialSymbols{}, err: errEmptyPayLine},
+
+		// Non-error samples with Winning Line
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 2, 3}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{{1, 1, 1}}, special: SM.SpecialSymbols{},
 			err:  nil,
 			wins: []SM.WinLine{}},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 1, 3}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{{1, 1, 1}}, special: SM.SpecialSymbols{},
-			err: nil,
-			//	wins: [][]SM.Symbol{{SM.Symbol(1), SM.Symbol(1)}}},
+			err:  nil,
 			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(1), SM.Symbol(1)}}},
 		},
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{1, 1, 1}, {5, 4, 3}, {2, 1, 3}}, payLines: []SM.PayLine{{1, 1, 1}}, special: SM.SpecialSymbols{},
@@ -67,6 +68,8 @@ var (
 			err:  nil,
 			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(4)}}},
 		},
+
+		// Winning Lines with Wildcard Symbol
 		{stops: []int{1, 1, 1}, reels: SM.Reels{{4, 1, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
 			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(4), SM.Symbol(4), SM.Symbol(888)}}},
 		},
@@ -76,6 +79,7 @@ var (
 		{stops: []int{1, 2, 0}, reels: SM.Reels{{888, 888, 4}, {5, 4, 888}, {2, 4, 3}}, payLines: []SM.PayLine{{1, 3, 2}}, special: SM.SpecialSymbols{Wildcard: 888}, err: nil,
 			wins: []SM.WinLine{SM.WinLine{Index: 1, Line: []SM.Symbol{SM.Symbol(888), SM.Symbol(888), SM.Symbol(4)}}},
 		},
+
 		// Multiple paylines
 		{
 			stops:    []int{1, 2, 0},
@@ -92,12 +96,13 @@ var (
 )
 
 type winSample struct {
-	stops    []int
-	reels    SM.Reels
-	payLines SM.PayLines
-	special  SM.SpecialSymbols
-	err      error
-	wins     []SM.WinLine
+	stops        []int
+	reels        SM.Reels
+	payLines     SM.PayLines
+	special      SM.SpecialSymbols
+	err          error
+	wins         []SM.WinLine
+	scatterCount int
 }
 
 func TestWin(t *testing.T) {
@@ -107,7 +112,7 @@ func TestWin(t *testing.T) {
 }
 
 func testWin(t *testing.T, sample winSample) {
-	wins, _, err := FindWins(sample.stops, sample.reels, sample.payLines, sample.special)
+	wins, err := FindWins(sample.stops, sample.reels, sample.payLines, sample.special)
 	if err != sample.err {
 		t.Errorf("Expected:[%s] Got:[%s]", sample.err, err)
 		return
@@ -119,6 +124,49 @@ func testWin(t *testing.T, sample winSample) {
 	equal := reflect.DeepEqual(wins, sample.wins)
 	if !equal {
 		t.Errorf("Expected:[%v] Got:[%v]", sample.wins, wins)
+	}
+}
+
+var (
+	scatterSamples = []scatterSample{
+		{
+			stops:        []int{0, 0, 0, 0, 0},
+			reels:        SM.Reels{{4, 777, 4, 777, 6}, {777, 4, 888, 777, 2}, {2, 777, 3, 3, 6}, {2, 9, 3, 3, 6}},
+			special:      SM.SpecialSymbols{Scatter: 777},
+			scatterCount: 4,
+		},
+		{
+			stops:        []int{1, 2, 0},
+			reels:        SM.Reels{{4, 888, 4}, {5, 4, 7}, {2, 4, 3}},
+			special:      SM.SpecialSymbols{Scatter: 777},
+			scatterCount: 0,
+		},
+		{
+			stops:        []int{1, 2, 0},
+			reels:        SM.Reels{{8, 888, 4}, {5, 4, 888}, {2, 888, 3}, {888, 4, 3}},
+			special:      SM.SpecialSymbols{Scatter: 888},
+			scatterCount: 2,
+		},
+	}
+)
+
+type scatterSample struct {
+	stops        []int
+	reels        SM.Reels
+	special      SM.SpecialSymbols
+	scatterCount int
+}
+
+func TestCountScatter(t *testing.T) {
+	for _, sample := range winSamples {
+		testWin(t, sample)
+	}
+}
+
+func testCountScatter(t *testing.T, sample scatterSample) {
+	scatter := CountScatter(sample.stops, sample.reels, sample.special.Scatter)
+	if scatter != sample.scatterCount {
+		t.Errorf("Expected:[%v] Got:[%v]", sample.scatterCount, scatter)
 	}
 }
 
