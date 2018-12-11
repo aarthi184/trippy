@@ -2,13 +2,25 @@ package spinner
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
+	"os"
 	"time"
 )
 
 func init() {
-	// TODO: Figure out if seed needs to be changed once in a while
-	rand.Seed(time.Now().UnixNano())
+	var seed int
+	host, err := os.Hostname()
+	if err == nil {
+		for _, n := range host {
+			seed = seed + int(n)
+		}
+	} else {
+		fmt.Println("Error in getting host name:", err)
+	}
+	// Randomizing the seed using machine hostname & current time
+	// So that all machines don't have the same seed if started at the same time
+	rand.Seed(time.Now().UnixNano() + int64(seed))
 }
 
 var (
