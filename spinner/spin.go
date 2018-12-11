@@ -106,7 +106,7 @@ func FindWins(
 
 		// Keeping track of the prime symbol and comparing each symbol in line with it
 		primeSymbol = getSymbol(reels, stops[0], line[0], 0)
-		//slog.Printf("FirstSymbol:%s", firstSymbol)
+		//slog.Printf("Prime Symbol:%s", primeSymbol)
 		payLineSymbols = make([]slotmachine.Symbol, 0, len(stops))
 		payLineSymbols = append(payLineSymbols, primeSymbol)
 
@@ -124,7 +124,7 @@ func FindWins(
 				break
 			}
 		}
-		slog.Printf("PayLine Symbols:%v", payLineSymbols)
+		//slog.Printf("PayLine Symbols:%v", payLineSymbols)
 		if len(payLineSymbols) > 1 {
 			winLine = slotmachine.WinLine{
 				Index: i + 1, // Starting human-friendly indexing (starts from 1)
@@ -202,22 +202,21 @@ func CalculatePay(wins []slotmachine.WinLine, payTable slotmachine.PayTable, spe
 		if line[0] != special.Wildcard {
 			//slog.Printf("Not wildcard:[%d] symbol:[%d]", special.Wildcard, winLine[0])
 			paySymbol = line[0]
-			if pays, ok = payTable[line[0]]; ok {
-				linePayout = pays[len(line)]
-				//slog.Println("Not wildcard Pay", pay)
-			}
 		} else {
 			//slog.Println("First symbol is wildcard", winLine[0])
 			paySymbol = special.Wildcard
+
+			// If first symbol was a wildcard, check if line contains another symbol
+			// Eg: WC WC 1 1
 			for j := 0; j < len(line); j++ {
 				if line[j] != special.Wildcard {
 					paySymbol = line[j]
+					break
 				}
 			}
-			if pays, ok = payTable[paySymbol]; ok {
-				linePayout = pays[len(line)]
-				//slog.Println("With wildcard Pay", pay)
-			}
+		}
+		if pays, ok = payTable[paySymbol]; ok {
+			linePayout = pays[len(line)]
 		}
 		totalPayout = totalPayout + linePayout
 		wins[i].Symbol = paySymbol
