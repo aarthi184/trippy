@@ -169,7 +169,8 @@ func getSymbol(reels slotmachine.Reels, stop, payLineSpot, stripNumber int) slot
 }
 
 // rotateOverflow rotates the reel to get a number within 0 and maxIndex
-// TODO: Handle cases where |offset| > length for offset<0, eg: maxIndex:4 offset: -6
+// TODO: Handle cases where |offset| > length for negative offsets, eg: maxIndex:4 offset: -6
+// In our case, since our slotmachines will always have 3 slots, we will never hit the above mentioned scenario
 func rotateOverflow(maxIndex, offset int) int {
 	if maxIndex <= 0 {
 		return maxIndex
@@ -180,28 +181,6 @@ func rotateOverflow(maxIndex, offset int) int {
 	}
 	return offset % length
 }
-
-/*
-var (
-	errAllWildcards = errors.New("All symbols in stops are wildcards")
-)
-
-	if firstSymbol == special.Wilcard {
-		j, err = findFirstNonWildcardSymbol(stops, reels[i], line, wildcard Symbol)
-		if err == errAllWildcards {
-			slog.Printf("All Wildcards in pay line:[%d][%v]", i, line)
-			slog.Println("Amount:%d", payTable[wildcard][len(stops)]
-		}
-	}
-func findFirstNonWildcard(stops []slotmachine.Symbol, reelLine slotmachine.ReelLine, payLine slotmachine.PayLine, wildcard slotmachine.Symbol) (int, error) {
-	for i := 0; i < len(stops); i++ {
-		if reelLine[i] != wildcard {
-			return i, nil
-		}
-	}
-	return -1, errAllWildcards
-}
-*/
 
 // CalculatePay finds the total pay for this spin from the list of winning lines
 func CalculatePay(wins []slotmachine.WinLine, payTable slotmachine.PayTable, special slotmachine.SpecialSymbols) (slotmachine.SpinResult, error) {
